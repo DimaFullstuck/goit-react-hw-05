@@ -1,0 +1,49 @@
+.MovieList {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 820px;
+  margin-top: 20px;
+  padding: 0;
+  list-style-type: none;
+
+  & {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(6, 6, 6, 0.5)),
+      url('../../images/sl_min.jpg');
+    background-color: rgba(0, 0, 0, 0.6);
+    background-blend-mode: overlay;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+  }
+  color: #333;
+  border-radius: 5px;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+.list_title {
+  font-size: 4rem;
+  font-weight: bold;
+  text-align: center;
+  color: #ef3939;
+  opacity: 40%;
+  padding: 0;
+  margin-left: 50px;
+  &:hover {
+    color: #710909;
+  }
+  text-decoration: underline;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+.create_linedown {
+  width: 8px;
+  height: 720px;
+  background: linear-gradient(to bottom, #141414, #e41c15);
+  margin-left: 100px;
+  transition: transform 0.3s ease;
+}
+.create_linedown:hover::after {
+  transform: translateY(-100%);
+}

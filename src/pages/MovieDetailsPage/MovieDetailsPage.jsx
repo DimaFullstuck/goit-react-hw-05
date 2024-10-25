@@ -1,65 +1,124 @@
-import { useParams, NavLink, Outlet } from 'react-router-dom';
-import { useState, useEffect, Suspense } from 'react';
-import { FaArrowLeftLong } from 'react-icons/fa6';
-import { useLocation } from 'react-router-dom';
-import useFetchData from '../../hooks/useFetchData';
-import ApiService from '../../api/ApiService';
-import AppContainer from '../../components/AppContainer/AppContainer';
-import AppSection from '../../components/AppSection/AppSection';
-import AppSecTitle from '../../components/AppSecTitle/AppSecTitle';
-import InfinityLoader from '../../components/Infinity/Infinity';
-import MovieInfo from '../../components/MovieInfo/MovieInfo';
-import CustomLink from '../../components/CustomLink/CustomLink';
-import styles from './MovieDetailsPage.module.css';
+import {
+  Outlet,
+  useParams,
+  useLocation,
+  Link,
+  useNavigate,
+} from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import fetchApi from '../../servises/Api';
+import s from './MovieDetailsPage.module.css';
+import Loader from '../../../src/components/Loader/Loader';
+
+const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 const MovieDetailsPage = () => {
-  const { id } = useParams();
-  const [item, setItem] = useState({});
+  const { movieId } = useParams();
   const location = useLocation();
-  const backLinkHref = location.state?.from ?? '/movies';
+  const navigate = useNavigate();
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const defaultImg =
+    'https://dummyimage.com/400x600/cdcdcd/000.jpg&text=No+poster';
 
-  const [itemLoading, itemError, fetchItemData] = useFetchData(async id => {
-    const responce = await ApiService.getMovieDetailsById(id);
-    setItem(responce);
-  });
+  const backLink = location.state?.from ?? '/movies';
 
-  useEffect(() => handleById(), []);
+  useEffect(() => {
+    if (!movieId) return;
+    if (!location.state) {
+      navigate('/movies');
+      return;
+    }
 
-  const handleById = () => {
-    fetchItemData(id);
-  };
+    const fetchMovieDetails = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchApi.fetchMovieById(movieId);
+        setMovie(data);
+        const reviewsData = await fetchApi.fetchMovieReviews(movieId);
+        setReviews(reviewsData.results || []);
+      } catch (error) {
+        console.error(error);
+        setError('Немає інформаціЇ');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovieDetails();
+  }, [movieId, location.state, navigate]);
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <p>Помилка: {error}</p>;
+  }
 
   return (
-    <AppContainer>
-      <AppSection>
-        <CustomLink to={backLinkHref}>
-          <FaArrowLeftLong />
-          Back
-        </CustomLink>
-        <InfinityLoader isLoading={itemLoading} />
-        {itemError ? <p>{itemError}</p> : <MovieInfo item={item} />}
-      </AppSection>
-      <AppSection>
-        <AppSecTitle>Aditional information</AppSecTitle>
-        <hr></hr>
-        <nav className={styles.navLink}>
-          <NavLink className={styles.link} to={`cast`} state={location.state}>
+    <div className={s.card_container}>
+      <div className={s.card_container_item}>
+        <img
+          className={s.image}
+          src={
+            movie.poster_path
+              ? `${IMAGE_BASE_URL}${movie.poster_path}`
+              : defaultImg
+          }
+          alt={movie.title}
+        />
+        <div className={s.card_text_container}>
+          <h2 className={s.title}>{movie.title}</h2>
+          <p className={s.overview}>{movie.overview}</p>
+          <p className={s.average}>Рейтинг: {movie.vote_average}</p>
+          <p className={s.date}>
+            Рік: {movie.release_date ? movie.release_date.split('-')[0] : 'N/A'}
+          </p>
+          <p className={s.genre}>
+            Жанри: {movie.genres.map(genre => genre.name).join(', ')}
+          </p>
+          <p className={s.time}>Тривалість: {movie.runtime} хвилин</p>
+          <p className={s.production_companies}>
+            Виробництво:{' '}
+            {movie.production_companies.map(company => company.name).join(', ')}
+          </p>
+          <p className={s.budget}>Бюджет: {movie.budget}</p>
+        </div>
+      </div>
+      <div className={s.Links}>
+        {location.pathname !== `/movies/${movieId}/cast` && (
+          <Link
+            className={s.Link}
+            to={`/movies/${movieId}/cast`}
+            state={{ from: location.pathname }}
+          >
             Cast
-          </NavLink>
-          <NavLink
-            className={styles.link}
-            to={`reviews`}
-            state={location.state}
+          </Link>
+        )}
+        {location.pathname !== `/movies/${movieId}/reviews` && (
+          <Link
+            className={s.Link}
+            to={`/movies/${movieId}/reviews`}
+            state={{ from: location.pathname }}
           >
             Reviews
-          </NavLink>
-        </nav>
-        <hr></hr>
-        <Suspense fallback={<div>Loading subpage...</div>}>
-          <Outlet />
-        </Suspense>
-      </AppSection>
-    </AppContainer>
+          </Link>
+        )}
+        <Outlet context={{ cast: movie.credits?.cast, reviews }} />
+
+        <Link
+          className={s.Link}
+          to={backLink}
+          state={{ from: location.pathname }}
+        >
+          Go back
+        </Link>
+      </div>
+    </div>
   );
 };
 

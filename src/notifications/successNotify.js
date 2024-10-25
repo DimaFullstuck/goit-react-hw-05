@@ -1,9 +1,0 @@
-import toast from "react-hot-toast";
-
-export const okNotify = (msg) => {
-  toast.success(msg, {
-    duration: 700,
-  });
-};
-
-export default okNotify;

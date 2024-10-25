@@ -1,37 +1,45 @@
-import { useState, useEffect } from "react";
-import useFetchData from "../../hooks/useFetchData";
-import AppContainer from "../../components/AppContainer/AppContainer";
-import AppSection from "../../components/AppSection/AppSection";
-import AppSecTitle from "../../components/AppSecTitle/AppSecTitle";
-import ApiService from "../../api/ApiService";
-import InfinityLoader from "../../components/Infinity/Infinity";
-import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
-import ItemsList from "../../components/ItemsList/ItemsList";
-
+import { useEffect, useState } from 'react';
+import MovieList from '../../components/MovieList/MovieList';
+import s from './HomePage.module.css';
+import Loader from '../../../src/components/Loader/Loader';
+import fetchApi from '../../servises/Api';
 const HomePage = () => {
-  const [items, setItems] = useState([]);
-  const [loading, error, fetchItemData] = useFetchData(async () => {
-    const responce = await ApiService.getTrends();
-    setItems(responce);
-  });
-
-  const handleLoadList = () => {
-    fetchItemData();
-  };
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    handleLoadList();
+    const loadMovies = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchApi.fetchMovies();
+        setMovies(data.results);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMovies();
   }, []);
 
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <p>Помилка: {error}</p>;
+  }
+  if (!movies || movies.length === 0) {
+    return <p>No film</p>;
+  }
   return (
-    <AppContainer>
-      <AppSection>
-        <AppSecTitle>Trending today</AppSecTitle>
-        <InfinityLoader isLoading={loading} />
-        {error && <ErrorMessage />}
-        <ItemsList items={items}></ItemsList>
-      </AppSection>
-    </AppContainer>
+    <div className={s.MovieList}>
+      <h1 className={s.list_title}>Trending today</h1>
+      <MovieList movies={movies} />
+      <div className={s.create_linedown}></div>
+    </div>
   );
 };
 

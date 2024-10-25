@@ -1,39 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import useFetchData from "../../hooks/useFetchData";
-import ApiService from "../../api/ApiService";
-import InfinityLoader from "../Infinity/Infinity";
-import ErrorMessage from "../ErrorMessage/ErrorMessage";
-import { NO_ELEMENTS } from "../ErrorMessage/constants";
-import ReviewList from "../ReviewList/ReviewList";
-
+import { useOutletContext, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import s from './MovieReviews.module.css';
 const MovieReviews = () => {
-  const { id } = useParams();
-  const [items, setItems] = useState([]);
+  const { reviews } = useOutletContext();
+  const { movieId } = useParams();
 
-  const [loading, error, fetchReviewsData] = useFetchData(
-    async (id, reviews = "reviews") => {
-      const responce = await ApiService.getMovieDetailsById(id, reviews);
-      setItems(responce.results);
-    }
-  );
+  useEffect(() => {
+    if (!movieId) return;
+  }, [movieId]);
+  if (!Array.isArray(reviews)) {
+    return <p>No reviews </p>;
+  }
+  if (!reviews || reviews.length === 0) {
+    return <p className={s.avalible_reviews}>No reviews</p>;
+  }
 
-  useEffect(() => handleReviews(), []);
-
-  const handleReviews = () => {
-    fetchReviewsData(id);
-  };
   return (
-    <React.Fragment>
-      <InfinityLoader isLoading={loading} />
-      {error && <ErrorMessage />}
-
-      {items.length > 0 ? (
-        <ReviewList items={items} />
-      ) : (
-        <ErrorMessage msg={NO_ELEMENTS} />
-      )}
-    </React.Fragment>
+    <div className={s.reviews_container}>
+      <h3 className={s.reviews}>Reviews</h3>
+      <ul className={s.reviews_list}>
+        {reviews.map(review => (
+          <li className={s.reviews_item} key={review.id}>
+            <h4 className={s.author}>{review.author}</h4>
+            <p className={s.content}>{review.content}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 

@@ -1,58 +1,62 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
-import AppContainer from "../../components/AppContainer/AppContainer";
-import AppSection from "../../components/AppSection/AppSection";
-import SearchBar from "../../components/SearchBar/SearchBar";
-import errNotify from "../../notifications/errorNotify";
-import { ERR_EMPTY_SEARCH } from "../../notifications/constants";
-import useFetchData from "../../hooks/useFetchData";
-import ApiService from "../../api/ApiService";
-import InfinityLoader from "../../components/Infinity/Infinity";
-import ErrorMessage from "../../components/ErrorMessage/ErrorMessage";
-import ItemsList from "../../components/ItemsList/ItemsList";
-import { NO_ELEMENTS } from "../../components/ErrorMessage/constants";
-
+// MoviesPage.jsx
+import s from './MoviesPage.module.css';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import SearchForm from '../../components/SearchForm/SearchForm.jsx';
+import fetchApi from '../../servises/Api.js';
+import { useSearchParams } from 'react-router-dom'; // Додано для навігації
+import Loader from '../../../src/components/Loader/Loader';
+import MovieList from '../../components/MovieList/MovieList';
 const MoviesPage = () => {
-  const [items, setItems] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('query') || '');
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [loading, error, fetchItemData] = useFetchData(async (filter) => {
-    const responce = await ApiService.searchMovies(filter);
-    setItems(responce);
-  });
-
-  useEffect(() => {
-    const strFilter = searchParams.get("search");
-    strFilter && fetchItemData(strFilter);
-  }, []);
-
-  const handleSearch = (strFilter) => {
-    if (strFilter === "") {
-      errNotify(ERR_EMPTY_SEARCH);
-      return;
-    }
-    fetchItemData(strFilter);
-    setSearchParams({ search: strFilter });
+  const handleChangeQuery = newQuery => {
+    setQuery(newQuery);
+    setSearchParams(newQuery ? { query: newQuery } : {});
   };
 
+  useEffect(() => {
+    if (query.trim()) {
+      const fetchMoviesByQuery = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          console.log('Fetching movies for query:', query);
+          const results = await fetchApi.fetchMovieSearch(query);
+          console.log('Results from API:', results);
+          setMovies(results);
+        } catch (error) {
+          console.log(error, 'Fetching movies');
+          setError('Не вдалося виконати пошук.');
+          toast.error('Не вдалося виконати пошук.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchMoviesByQuery();
+    } else {
+      setMovies([]);
+    }
+  }, [query]);
+
   return (
-    <AppContainer>
-      <AppSection>
-        <SearchBar
-          onSearch={handleSearch}
-          initialValue={searchParams.get("search")}
-        />
-        <InfinityLoader isLoading={loading} />
-        {error && <ErrorMessage />}
-        {items.length ? (
-          <ItemsList items={items} />
+    <>
+      <div className={s.MoviesPage_w}>
+        <SearchForm onSubmit={handleChangeQuery} />
+        {loading && <Loader />}
+        {error && <p className={s.error}>{error}</p>}
+        {movies.length > 0 ? (
+          <MovieList movies={movies} /> // Використовуємо компонент MovieListSearch
         ) : (
-          <ErrorMessage msg={NO_ELEMENTS} />
+          !loading && <p className={s.SearchForm_mesage}>No movies found</p>
         )}
-      </AppSection>
-      <Toaster />
-    </AppContainer>
+      </div>
+    </>
   );
 };
 

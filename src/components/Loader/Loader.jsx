@@ -1,18 +1,18 @@
-import { InfinitySpin } from "react-loader-spinner";
-
-import styles from "./Loader.module.css";
-
-const Loader = ({ isLoading }) => {
+import { ProgressBar } from 'react-loader-spinner';
+const Loader = () => {
   return (
-    <>
-      {isLoading && (
-        <InfinitySpin
-          className={styles.loader}
-          visible={isLoading}
-          ariaLabel="Loading"
-        />
-      )}
-    </>
+    <div>
+      <ProgressBar
+        visible={true}
+        height="80"
+        width="180"
+        color="#4fa94d"
+        ariaLabel="progress-bar-loading"
+        wrapperStyle={{}}
+        wrapperClass=""
+      />
+      ;
+    </div>
   );
 };
 

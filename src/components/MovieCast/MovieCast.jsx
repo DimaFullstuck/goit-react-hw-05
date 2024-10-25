@@ -1,33 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import useFetchData from "../../hooks/useFetchData";
-import ApiService from "../../api/ApiService";
-import InfinityLoader from "../Infinity/Infinity";
-import ErrorMessage from "../ErrorMessage/ErrorMessage";
-import CastList from "../CastList/CastList";
-
+import { useOutletContext, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import s from './MovieCast.module.css';
 const MovieCast = () => {
-  const { id } = useParams();
-  const [items, setItems] = useState([]);
+  const { cast } = useOutletContext();
+  const { movieId } = useParams();
 
-  const [loading, error, fetchCreditsData] = useFetchData(
-    async (id, credits = "credits") => {
-      const responce = await ApiService.getMovieDetailsById(id, credits);
-      setItems(responce.cast);
-    }
-  );
+  useEffect(() => {
+    if (!movieId) return;
+  }, [movieId]);
 
-  useEffect(() => handleCredits(), []);
+  const defaultImg =
+    'https://dummyimage.com/400x600/cdcdcd/000.jpg&text=No+poster';
 
-  const handleCredits = () => {
-    fetchCreditsData(id);
-  };
+  if (!cast || cast.length === 0) {
+    return <p className={s.avalible_cast}>NO cast</p>;
+  }
+
   return (
-    <React.Fragment>
-      <InfinityLoader isLoading={loading} />
-      {error && <ErrorMessage />}
-      {items.length > 0 && <CastList items={items} />}
-    </React.Fragment>
+    <div className={s.container_cast}>
+      <h3 className={s.actors}>Actors</h3>
+      <ul className={s.actors_list}>
+        {cast.map(actor => (
+          <li className={s.actors_list_item} key={actor.id}>
+            <p className={s.actor_name}>{actor.name}</p>
+            <img
+              className={s.actors_list_img}
+              src={
+                actor.profile_path
+                  ? `https://image.tmdb.org/t/p/w500${actor.profile_path}`
+                  : defaultImg
+              }
+              alt={actor.name}
+              width="100"
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 
