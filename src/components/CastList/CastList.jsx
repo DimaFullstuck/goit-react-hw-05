@@ -1,10 +1,10 @@
-import CastItem from "../CastItem/CastItem";
-import styles from "./CastList.module.css";
+import CastItem from '../Castltem/Castltem';
+import styles from './CastList.module.css';
 
 const CastList = ({ items }) => {
   return (
     <ul className={styles.cast}>
-      {items.map((item) => (
+      {items.map(item => (
         <li key={item.id}>
           <CastItem item={item} />
         </li>
