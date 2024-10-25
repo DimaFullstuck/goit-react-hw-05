@@ -5,7 +5,7 @@ import {
   Link,
   useNavigate,
 } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import fetchApi from '../../servises/Api';
 import s from './MovieDetailsPage.module.css';
 import Loader from '../../../src/components/Loader/Loader';
@@ -16,6 +16,7 @@ const MovieDetailsPage = () => {
   const { movieId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const back = useRef(location?.state ?? '/');
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
