@@ -16,7 +16,6 @@ const MovieDetailsPage = () => {
   const { movieId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const back = useRef(location?.state ?? '/');
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,7 +23,7 @@ const MovieDetailsPage = () => {
   const defaultImg =
     'https://dummyimage.com/400x600/cdcdcd/000.jpg&text=No+poster';
 
-  const backLink = location.state?.from ?? '/movies';
+  const backLinkRef = useRef(location.state?.from ?? '/movies');
 
   useEffect(() => {
     if (!movieId) return;
@@ -113,8 +112,8 @@ const MovieDetailsPage = () => {
 
         <Link
           className={s.Link}
-          to={backLink}
-          state={{ from: location.pathname }}
+          to={backLinkRef.current}
+          // state={{ from: location.pathname }}
         >
           Go back
         </Link>
